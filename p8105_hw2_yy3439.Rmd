@@ -5,6 +5,36 @@ date: "2023-10-03"
 ---
 
 ```{r}
-
+library(tidyverse)
+library(dplyr)
 ```
+
+## Problem 1
+
+### Break up the Variable `mon` into Integer Variables 
+
+
+Firstly, import the 
+
+```{r}
+pols_data = read_csv(file = "./fivethirtyeight_datasets/pols-month.csv") #import the pols-month csv file
+```
+
+
+```{r}
+pols_data |>
+   janitor::clean_names() |>
+   separate(mon, into = c("year", "month", "day"), sep = "-") |>
+   mutate(
+     month = as.numeric(month),
+     month = month.name[month]) |>
+  select(-prez_dem, -prez_gop) |>
+   pivot_longer(
+    gov_gop:rep_dem,
+     values_to = "president") |>
+      select(-day)
+    
+  
+```
+
 
