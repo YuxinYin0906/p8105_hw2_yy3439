@@ -145,6 +145,10 @@ trash_wheel = bind_rows(mr_trash_wheel_data, professor_tw_data, gwynnda_tw_data)
 
 #### Discussion
 
-The `Mr Trash Wheel` sheet has `r nrow(mr_trash_wheel_data)` observations. The `Professor Trash Wheel` sheet has `r nrow(professor_tw_data)` observations, and the `Gwynna Trash Wheel` sheet has `r nrow(gwynnda_tw_data)` observations. Specifically, all these data is calculated after we omit rows with no specific dumpster data. 
-In addition, the combined dataset `trash_wheel` contains `r nrow(trash_wheel)` observations and `r ncol(trash_wheel)` columns. 
+The `Mr Trash Wheel` sheet has `r nrow(mr_trash_wheel_data)` observations. The `Professor Trash Wheel` sheet has `r nrow(professor_tw_data)` observations, and the `Gwynnda Trash Wheel` sheet has `r nrow(gwynnda_tw_data)` observations. Specifically, all these data is calculated after we omit rows with no specific dumpster data. 
+In addition, the final combined dataset `trash_wheel` contains `r nrow(trash_wheel)` observations and `r ncol(trash_wheel)` columns. 
+Each sheet contains similar key variables specifying various types of dumpsters: plastic bottles, polystyrene, cigarette_butts and so on. Additionally, there are also variables such as `weight_tons` and `volume_cubic_yards`, which can be used to quantify the total dumpsters collected. 
+The total weight of trash collected by Professor Trash Wheel is `r sum(professor_tw_data|>pull(weight_tons))`, and the total number of cigarette butts collected by Gwynnda in July of 2021 is `r gwynnda_tw_data|>filter(year == 2021 & month == "July")|>pull(cigarette_butts)|>sum()|>as.integer()`.
+
+
 
