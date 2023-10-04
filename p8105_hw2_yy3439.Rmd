@@ -11,30 +11,56 @@ library(dplyr)
 
 ## Problem 1
 
-### Break up the Variable `mon` into Integer Variables 
-
-
-Firstly, import the 
+Firstly, import the `pols-month.csv` file
 
 ```{r}
 pols_data = read_csv(file = "./fivethirtyeight_datasets/pols-month.csv") #import the pols-month csv file
+
 ```
+
+Firstly,
+
 
 
 ```{r}
 pols_data |>
-   janitor::clean_names() |>
-   separate(mon, into = c("year", "month", "day"), sep = "-") |>
+   janitor::clean_names() |> #clean-up names to r suitable names
+   separate(mon, into = c("year", "month", "day"), sep = "-") |> #separate the mon variable by "-"
    mutate(
-     month = as.numeric(month),
-     month = month.name[month]) |>
-  select(-prez_dem, -prez_gop) |>
+     month = as.numeric(month), #change the char variable month to numeric
+     month = month.name[month]) |> #translate numeric month number to full month names
+  select(-prez_dem, -prez_gop) |> #remove the prez_dem and prez_gop variables
    pivot_longer(
-    gov_gop:rep_dem,
-     values_to = "president") |>
-      select(-day)
+    gov_gop:rep_dem, #select the remaining columns
+     values_to = "president") |> #and assign the values of these variables to a new variable "president"
+      select(-day) #remove the day variable
     
   
 ```
 
+
+Secondly, 
+
+
+```{r}
+snp_data = read_csv(file = "./fivethirtyeight_datasets/snp.csv")
+```
+
+### Clean the snp data
+
+
+```{r}
+snp_data|>
+   janitor::clean_names() |> #clean-up names to r suitable names
+   separate(date, into = c("year", "month", "day"), sep = "/") |>
+  arrange(year, month)
+```
+
+
+Thirdly,
+
+
+```{r}
+
+```
 
