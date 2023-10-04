@@ -43,7 +43,7 @@ Secondly,
 
 
 ```{r}
-snp_data = read_csv(file = "./fivethirtyeight_datasets/snp.csv")
+snp_data = read_csv(file = "./fivethirtyeight_datasets/snp.csv") #load the snp.csv file
 ```
 
 ### Clean the snp data
@@ -52,8 +52,14 @@ snp_data = read_csv(file = "./fivethirtyeight_datasets/snp.csv")
 ```{r}
 snp_data|>
    janitor::clean_names() |> #clean-up names to r suitable names
-   separate(date, into = c("year", "month", "day"), sep = "/") |>
-  arrange(year, month)
+  mutate(date = as.Date(date, format = "%m/%d/%y"))|>
+   separate(date, into = c("year", "month"), sep = "-") |>#separate the date variable into year, month, and day
+   mutate(
+     month = as.numeric(month), #change the char variable month to numeric
+     month = month.name[month])|>
+  arrange(year, month)|>  #rearrange by the order of year and month
+  relocate(year, month, everything())
+ 
 ```
 
 
@@ -61,6 +67,81 @@ Thirdly,
 
 
 ```{r}
+unemploy_data = read_csv(file = "./fivethirtyeight_datasets/unemployment.csv") #load the snp.csv file
+```
+
+### Merging Datasets
+
+
+```{r}
+unemploy_data|>
+   janitor::clean_names() |>
+  pivot_longer(
+    jan:dec,
+    names_to = "month"
+  )|>
+  arrange(year, month)
+  
+```
+
+
+## Problem 2
+
+
+```{r}
+library(readxl)
+mr_tw_data = read_excel("./fivethirtyeight_datasets/ts.xlsx", sheet = "Mr. Trash Wheel", skip = 1) #load the excel file with Mr. Trash Wheel sheet and omit the first column with figure 
+```
+
+
+### Tidy Data
+
+```{r}
+mr_trash_wheel_data = mr_tw_data |> 
+  janitor::clean_names() |> #clean names to appropriate r format
+  select(dumpster:homes_powered)|> #omit non-data entries 
+  drop_na(dumpster) |> #omit rows with no dumpster-specific data 
+  mutate(
+    homes_powered = ((weight_tons*500)/30), #add another variable based on the calculation in the notes
+    tw_name = "Mr. Trash Wheel", #to keep track of the records after combining datasets 
+    year = as.numeric(year)
+    
+  )
 
 ```
+
+
+Similarly, we follow the same cleanning process to organize the data for Professor Trash Wheel and Gwynnda
+
+
+```{r}
+professor_tw_data = read_excel("./fivethirtyeight_datasets/ts.xlsx", sheet = "Professor Trash Wheel", skip = 1)|>
+   janitor::clean_names() |>
+  drop_na(dumpster) |>
+  mutate(
+    homes_powered = ((weight_tons*500)/30),
+    tw_name = "Professor Trash Wheel"
+
+  )
+
+gwynnda_tw_data = read_excel("./fivethirtyeight_datasets/ts.xlsx", sheet = "Gwynnda Trash Wheel", skip = 1)|>
+   janitor::clean_names() |>
+  drop_na(dumpster) |>
+  mutate(
+    homes_powered = ((weight_tons*500)/30),
+     tw_name = "Gwynnda Trash Wheel"
+  )
+```
+
+### Combine Datasets
+
+Finally, combining the above three datasets
+
+```{r}
+trash_wheel = bind_rows(mr_trash_wheel_data, professor_tw_data, gwynnda_tw_data) |>
+  select(trash_wheel_name = "tw_name", everything())
+```
+
+
+
 
