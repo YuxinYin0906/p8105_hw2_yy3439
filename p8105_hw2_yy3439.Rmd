@@ -196,7 +196,7 @@ baseline_data = mci_demographic_data|>
 
 #### Discussion
 
-Notably, we translate two numeric binary variable `sex` and `apoe4` to categorical variables:female/male and carrier/non-carrier. In addition, we remove participants whose `age_at_onset` is missing by using the `filter` function. `r nrow(mci_demographic_data)` participants were recruited, and `r nrow(baseline_data)` participants developed MCI. The average baseline age is `r mean(pull(baseline_data, current_age))`. The proportion of women who are APOE4 carriers is approximately `r scales::percent(nrow(baseline_data|>filter(sex == 0 & apoe4 == 1)) / nrow(baseline_data|>filter(sex == 0)))` round to the nearest integer.
+Notably, we translate two numeric binary variable `sex` and `apoe4` to categorical variables:female/male and carrier/non-carrier. In addition, we remove participants whose `age_at_onset` is missing by using the `filter` function. `r nrow(mci_demographic_data)` participants were recruited(before cleaning), and `r nrow(baseline_data)` participants developed MCI. The average baseline age is `r mean(pull(baseline_data, current_age))`. The proportion of women who are APOE4 carriers is approximately `r scales::percent(nrow(baseline_data|>filter(sex == "female" & apoe4 == "carrier")) / nrow(baseline_data|>filter(sex == "female")))` round to the nearest integer.
 
 
 #### Tidy up Longitudinally Observed Biomarker Values
