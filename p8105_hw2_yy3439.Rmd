@@ -152,3 +152,54 @@ The total weight of trash collected by Professor Trash Wheel is `r sum(professor
 
 
 
+## Problem 3
+
+#### Tidy up Demographic Data
+
+```{r}
+mci_demographic_data = read_csv(file = "./data_mci/MCI_Baseline.csv", skip =1)|> #load the demographic csv file
+  janitor::clean_names()
+```
+```{r}
+mcidemo_data = mci_demographic_data|>
+  janitor::clean_names()|> #recode names to appropriate r style 
+  mutate(
+    sex = case_match( #this part comes from class note
+      sex,
+      1 ~ "male",
+      0 ~ "female"
+    ),
+    apoe4 = case_match( #follow the same logic as translating binary numeric values to categorical 
+      apoe4,
+      1 ~ "carrier",
+      0 ~ "non-carrier"
+    )
+  )|>
+  filter(age_at_onset !=".") #remove participants with no MCI at baseline
+  
+```
+
+#### Discussion
+
+Notably, we translate two numeric binary variable `sex` and `apoe4` to categorical variables:female/male and carrier/non-carrier. In addition, we remove participants whose `age_at_onset` is missing by using the `filter` function. `r nrow(mci_demographic_data)` participants were recruited, and `r nrow(mcidemo_data)` participants developed MCI. The average baseline age is `r mean(pull(mci_demographic_data, current_age))`. The proportion of women who are APOE4 carriers is approximately `r scales::percent(nrow(mci_demographic_data|>filter(sex == 0 & apoe4 == 1)) / nrow(mci_demographic_data|>filter(sex == 0)))` round to the nearest integer.
+
+
+#### Tidy up Longitudinally Observed Biomarker Values
+
+```{r}
+mci_longitude_data = read_csv(file = "./data_mci/mci_amyloid.csv", skip =1)|> #load the demographic csv file
+  janitor::clean_names()
+
+amyloid = mci_longitude_data|>
+   rename(id = study_id)|>
+  pivot_longer(
+    baseline:time_8,
+    names_to = "visit_time_elapsed",
+    values_to = "amyloid_β_ratio"
+  )|>
+  drop_na(amyloid_β_ratio)
+  
+```
+Similarly, import the csv file and skip line 1 because the first column was the note. Then, rename the variable names to appropriate r style. Also, `study_id` is renamed to `id` in order to merge the two datasets. Additionally, n.a values are omitted after pivoting the data frame longer. 
+
+
