@@ -161,7 +161,7 @@ mci_demographic_data = read_csv(file = "./data_mci/MCI_Baseline.csv", skip =1)|>
   janitor::clean_names()
 ```
 ```{r}
-mcidemo_data = mci_demographic_data|>
+baseline_data = mci_demographic_data|>
   janitor::clean_names()|> #recode names to appropriate r style 
   mutate(
     sex = case_match( #this part comes from class note
@@ -181,17 +181,17 @@ mcidemo_data = mci_demographic_data|>
 
 #### Discussion
 
-Notably, we translate two numeric binary variable `sex` and `apoe4` to categorical variables:female/male and carrier/non-carrier. In addition, we remove participants whose `age_at_onset` is missing by using the `filter` function. `r nrow(mci_demographic_data)` participants were recruited, and `r nrow(mcidemo_data)` participants developed MCI. The average baseline age is `r mean(pull(mci_demographic_data, current_age))`. The proportion of women who are APOE4 carriers is approximately `r scales::percent(nrow(mci_demographic_data|>filter(sex == 0 & apoe4 == 1)) / nrow(mci_demographic_data|>filter(sex == 0)))` round to the nearest integer.
+Notably, we translate two numeric binary variable `sex` and `apoe4` to categorical variables:female/male and carrier/non-carrier. In addition, we remove participants whose `age_at_onset` is missing by using the `filter` function. `r nrow(mci_demographic_data)` participants were recruited, and `r nrow(baseline_data)` participants developed MCI. The average baseline age is `r mean(pull(baseline_data, current_age))`. The proportion of women who are APOE4 carriers is approximately `r scales::percent(nrow(baseline_data|>filter(sex == 0 & apoe4 == 1)) / nrow(baseline_data|>filter(sex == 0)))` round to the nearest integer.
 
 
 #### Tidy up Longitudinally Observed Biomarker Values
 
 ```{r}
 mci_longitude_data = read_csv(file = "./data_mci/mci_amyloid.csv", skip =1)|> #load the demographic csv file
-  janitor::clean_names()
+  janitor::clean_names()|>
+  rename(id = study_id)
 
 amyloid = mci_longitude_data|>
-   rename(id = study_id)|>
   pivot_longer(
     baseline:time_8,
     names_to = "visit_time_elapsed",
@@ -202,4 +202,21 @@ amyloid = mci_longitude_data|>
 ```
 Similarly, import the csv file and skip line 1 because the first column was the note. Then, rename the variable names to appropriate r style. Also, `study_id` is renamed to `id` in order to merge the two datasets. Additionally, n.a values are omitted after pivoting the data frame longer. 
 
+Before merging the datasets, we can check participants that only appear in either the baseline or amyloid dataset. We can see that 12 participants appear only in `amyloid` dataset and 8 participants only appear in `baseline` dataset.
+```{r}
+unique_in_amyloid  = anti_join(mci_longitude_data, mci_demographic_data, by = "id")
+unique_in_amyloid
 
+unique_in_baseline  = anti_join(mci_demographic_data, mci_longitude_data, by = "id")
+unique_in_baseline
+```
+
+
+#### Merging Datasets
+
+
+```{r}
+full_dataset = inner_join(baseline_data, amyloid, by = c("id"))
+```
+
+#### Exporting
