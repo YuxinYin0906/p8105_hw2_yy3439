@@ -1,5 +1,6 @@
 ---
 title: "p8105_hw2_yy3439"
+author: "Yuxin Yin"
 output: github_document
 date: "2023-10-03"
 ---
@@ -18,71 +19,85 @@ pols_data = read_csv(file = "./fivethirtyeight_datasets/pols-month.csv") #import
 
 ```
 
-Firstly,
+#### pols_data
 
 
 
 ```{r}
-pols_data |>
+pols = pols_data |>
    janitor::clean_names() |> #clean-up names to r suitable names
    separate(mon, into = c("year", "month", "day"), sep = "-") |> #separate the mon variable by "-"
    mutate(
      month = as.numeric(month), #change the char variable month to numeric
+     year = as.numeric(year),
      month = month.name[month]) |> #translate numeric month number to full month names
   select(-prez_dem, -prez_gop) |> #remove the prez_dem and prez_gop variables
    pivot_longer(
     gov_gop:rep_dem, #select the remaining columns
      values_to = "president") |> #and assign the values of these variables to a new variable "president"
       select(-day) #remove the day variable
-    
   
 ```
 
 
-Secondly, 
+#### snp_data
 
 
 ```{r}
 snp_data = read_csv(file = "./fivethirtyeight_datasets/snp.csv") #load the snp.csv file
 ```
 
-### Clean the snp data
-
 
 ```{r}
-snp_data|>
+snp = snp_data|>
    janitor::clean_names() |> #clean-up names to r suitable names
-  mutate(date = as.Date(date, format = "%m/%d/%y"))|>
-   separate(date, into = c("year", "month"), sep = "-") |>#separate the date variable into year, month, and day
+  mutate(date = format(as.Date(date, format = "%m/%d/%y"), "%Y/%m/%d"))|>
+   separate(date, into = c("year", "month", "day"), sep = "/") |>#separate the date variable into year, month, and day
    mutate(
-     month = as.numeric(month), #change the char variable month to numeric
-     month = month.name[month])|>
+     year = as.numeric(year),    #change the char variable month to numeric
+     year = ifelse(year >2023, year - 100, year),
+     month = as.numeric(month),
+      month = month.name[month]
+    )|>
+  select(-day)|>
   arrange(year, month)|>  #rearrange by the order of year and month
   relocate(year, month, everything())
- 
 ```
 
-
-Thirdly,
+#### unemploy_data
 
 
 ```{r}
 unemploy_data = read_csv(file = "./fivethirtyeight_datasets/unemployment.csv") #load the snp.csv file
 ```
 
-### Merging Datasets
-
 
 ```{r}
-unemploy_data|>
+unemployment = unemploy_data|>
    janitor::clean_names() |>
   pivot_longer(
     jan:dec,
-    names_to = "month"
+    names_to = "month",
+    values_to = "unemployment"
   )|>
-  arrange(year, month)
-  
+  mutate(
+    year = as.numeric(year),
+    month = month.name[match(month, tolower(month.abb))]
+  )
 ```
+#### Merging Datasets
+
+
+```{r}
+merged_data = left_join(pols, snp, by = c("year", "month")) |>
+  left_join(unemployment, by = c("year", "month"))
+merged_data
+```
+The `pols` dataset has `r nrow(pols)` observations after cleaning. This dataset contains data related to president information and party affiliation. In addition, the `snp` dataset has `r nrow(snp)` observations after cleaning, and the `unemployment` dataset has `r nrow(unemployment)` observations after cleaning. The `snp` dataset contains data related to `close` and the `unemployment` dataset contains information related to unemployed rate. The combined dataset has `r nrow(merged_data)` observations and `r ncol(merged_data)` variables after cleaning. Finally, we noticed that parts of both `close` and `unemployment` are missing for the final merged dataset. We can't simply omit all the NAs because some appear in `close` while the others appear in `unemployment`.
+
+
+
+
 
 
 ## Problem 2
@@ -218,5 +233,12 @@ unique_in_baseline
 ```{r}
 full_dataset = inner_join(baseline_data, amyloid, by = c("id"))
 ```
+There are `r nrow(full_dataset)` participants and `r ncol(full_dataset)` columns in the final merged dataset. The average education level is `r mean(full_dataset|>pull(education))`.
+
 
 #### Exporting
+
+```{r}
+write.csv(full_dataset, "./data_mci/mci_full.csv")
+```
+
